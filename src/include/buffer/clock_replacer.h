@@ -47,6 +47,11 @@ class ClockReplacer : public Replacer {
 
  private:
   // TODO(student): implement me!
+  frame_id_t *frame_sets; //whether in clockReplacer  null?
+  size_t *ref_bits;  //whether recently been unpinned?
+  size_t clock_hand;
+  size_t num_page;
+
 };
 
 }  // namespace bustub
