@@ -47,10 +47,14 @@ class ClockReplacer : public Replacer {
 
  private:
   // TODO(student): implement me!
-  frame_id_t *frame_sets; //whether in clockReplacer  null?
-  size_t *ref_bits;  //whether recently been unpinned?
+  struct ClockItem {
+      bool isPin;
+      bool ref;
+  };
+  std::vector<ClockItem> clock_replacr;
   size_t clock_hand;
-  size_t num_page;
+  size_t in_clock_size;
+  std::mutex mylock;
 
 };
 

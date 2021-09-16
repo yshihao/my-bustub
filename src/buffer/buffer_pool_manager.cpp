@@ -82,14 +82,19 @@ bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
      return false;
   }
   pages_[frame_id].WLatch();
+  
   pages_[frame_id].is_dirty_ = is_dirty;
   pages_[frame_id].pin_count_ = pages_[frame_id].pin_count_-1;
+  if(pages_[frame_id].pin_count_==0) {
+    replacer_->Unpin(frame_id);
+  }
   pages_[frame_id].WUnlatch();
   return true;
   }
 
 bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
   // Make sure you call DiskManager::WritePage!
+  std::scoped_lock locks{latch_};
   auto p = page_table_.find(page_id);
   if(p!=page_table_.end()) {
     frame_id_t frame_id = p->second;
@@ -106,6 +111,7 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
   // 0.   Make sure you call DiskManager::AllocatePage!
   // 1.   If all the pages in the buffer pool are pinned, return nullptr.
   size_t i;
+  std::scoped_lock locks{latch_};
   for(i=0;i<pool_size_;i++) {
     if(pages_[i].GetPinCount()<=0) break; 
   }
@@ -139,6 +145,7 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
   // 1.   Search the page table for the requested page (P).
   // 1.   If P does not exist, return true.
   // 2.   If P exists, but has a non-zero pin-count, return false. Someone is using the page.
+  std::scoped_lock locks{latch_};
   frame_id_t frame_id;
   if(page_table_.find(page_id)==page_table_.end()){
     return true;
@@ -160,11 +167,13 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
 
 void BufferPoolManager::FlushAllPagesImpl() {
   // You can do it!
+   std::scoped_lock locks{latch_};
   for(auto p=page_table_.begin();p!=page_table_.end();p++) {
     frame_id_t frame_id = p->second;
     page_id_t page_id = p->first;
     disk_manager_->WritePage(page_id,pages_[frame_id].GetData());
   }
+  
 }
 
 }  // namespace bustub
