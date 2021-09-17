@@ -15,23 +15,16 @@
 namespace bustub {
 
 LRUReplacer::LRUReplacer(size_t num_pages) {
-    mymutex.lock();
-    if(lruMap.empty()) {
-        mymutex.unlock();
-        return false;
-    }
-    frame_id_t frame_id = lru_list.back();
-    lruMap.erase(frame_id);
-    lru_list.pop_back();
-    
-
+    page_number = num_pages;
+    lru_list.clear();
+    lruMap.clear();
 }
 
 LRUReplacer::~LRUReplacer() = default;
 
-bool LRUReplacer::Victim(frame_id_t *frame_id) { 
+bool LRUReplacer::Victim(frame_id_t *frame_id) {
     mymutex.lock();
-    if(lruMap.empty()) {
+    if (lruMap.empty()) {
         mymutex.unlock();
         return false;
     }
@@ -40,14 +33,12 @@ bool LRUReplacer::Victim(frame_id_t *frame_id) {
     lru_list.pop_back();
     *frame_id = frame_ids;
     mymutex.unlock();
-    return true; 
-
-
+    return true;
 }
 
 void LRUReplacer::Pin(frame_id_t frame_id) {
     mymutex.lock();
-    if(lruMap.count(frame_id)!= 0) {
+    if (lruMap.count(frame_id)!= 0) {
         lru_list.erase(lruMap[frame_id]);
         lruMap.erase(frame_id);
     }
@@ -56,22 +47,20 @@ void LRUReplacer::Pin(frame_id_t frame_id) {
 
 void LRUReplacer::Unpin(frame_id_t frame_id) {
     mymutex.lock();
-    if(lruMap.count(frame_id)!=0) {
+    if (lruMap.count(frame_id) != 0) {
         mymutex.unlock();
         return;
     }
-    while(lru_list.size()>=page_number) {
-        frame_id_t del = lru_list.front();
-        lru_list.pop_front();
-        lruMap.erase(del);
-    }
-
+    // while(lru_list.size()>=page_number) {
+    //     frame_id_t del = lru_list.front();
+    //     lru_list.pop_front();
+    //     lruMap.erase(del);
+    // }
     lru_list.push_front(frame_id);
     lruMap[frame_id] = lru_list.begin();
     mymutex.unlock();
-
 }
 
-size_t LRUReplacer::Size() { return 0; }
+size_t LRUReplacer::Size() { return lru_list.size(); }
 
 }  // namespace bustub
