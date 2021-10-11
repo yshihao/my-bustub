@@ -110,7 +110,13 @@ class BufferPoolManager {
       callback(callback_type, page_id);
     }
   }
-
+  /**
+   * 
+   * find the qualified page
+   * @param frame_id id of replaced page
+   * @return false if not find replaced page,true otherwise
+   */
+  bool find_replace(frame_id_t *frame_id);
   /**
    * Fetch the requested page from the buffer pool.
    * @param page_id id of page to be fetched
