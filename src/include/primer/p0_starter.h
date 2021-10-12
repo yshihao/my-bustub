@@ -13,6 +13,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 
 namespace bustub {
 
@@ -55,9 +56,7 @@ class Matrix {
   virtual void MatImport(T *arr) = 0;
 
   // TODO(P0): Add implementation
-  virtual ~Matrix() {
-    delete [] linear;
-  }
+  virtual ~Matrix() { delete[] linear; }
 };
 
 template <typename T>
@@ -65,37 +64,31 @@ class RowMatrix : public Matrix<T> {
  public:
   // TODO(P0): Add implementation
   RowMatrix(int r, int c) : Matrix<T>(r, c) {
-    data_ = new T*[r];
+    data_ = new T *[r];
     for (int i = 0; i < (this->rows); i++) {
       data_[i] = &this->linear[i * this->cols];
     }
   }
   // TODO(P0): Add implementation
-  int GetRows() override {
-    return this->rows;
-  }
+  int GetRows() override { return this->rows; }
   // TODO(P0): Add implementation
-  int GetColumns() override {
-    return this->cols;
-  }
+  int GetColumns() override { return this->cols; }
   // TODO(P0): Add implementation
-  T GetElem(int i, int j) override { return this->linear[i * this->cols+j]; }
+  T GetElem(int i, int j) override { return this->linear[i * this->cols + j]; }
   // TODO(P0): Add implementation
   void SetElem(int i, int j, T val) override {
     // data_[i][j] = val;
-    this->linear[i*this->cols+j] = val;
+    this->linear[i * this->cols + j] = val;
   }
   // TODO(P0): Add implementation
   void MatImport(T *arr) override {
-    for (int i=0; i < (this->rows) * (this->cols); i++) {
+    for (int i = 0; i < (this->rows) * (this->cols); i++) {
       this->linear[i] = arr[i];
     }
   }
 
   // TODO(P0): Add implementation
-  ~RowMatrix() override {
-    delete [] data_;
-  };
+  ~RowMatrix() override { delete[] data_; };
 
  private:
   // 2D array containing the elements of the matrix in row-major format
