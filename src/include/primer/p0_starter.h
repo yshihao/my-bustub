@@ -55,40 +55,46 @@ class Matrix {
   virtual void MatImport(T *arr) = 0;
 
   // TODO(P0): Add implementation
-  virtual ~Matrix() = default;
+  virtual ~Matrix() {
+    delete [] linear;
+  }
 };
 
 template <typename T>
 class RowMatrix : public Matrix<T> {
  public:
   // TODO(P0): Add implementation
-  RowMatrix(int r, int c) : Matrix<T>(r, c) { data_ = new T *[r]; }
-  // TODO(P0): Add implementation
-  int GetRows() override { return this->rows; }
-
-  // TODO(P0): Add implementation
-  int GetColumns() override { return this->cols; }
-
-  // TODO(P0): Add implementation
-  T GetElem(int i, int j) override { return data_[i][j]; }
-
-  // TODO(P0): Add implementation
-  void SetElem(int i, int j, T val) override { data_[i][j] = val; }
-
-  // TODO(P0): Add implementation
-  void MatImport(T *arr) override {
-    for (int i = 0; i < (this->rows) * (this->cols); i++) {
-      this->linear[i] = arr[i];
-    }
+  RowMatrix(int r, int c) : Matrix<T>(r, c) {
+    data_ = new T*[r];
     for (int i = 0; i < (this->rows); i++) {
       data_[i] = &this->linear[i * this->cols];
+    }
+  }
+  // TODO(P0): Add implementation
+  int GetRows() override {
+    return this->rows;
+  }
+  // TODO(P0): Add implementation
+  int GetColumns() override {
+    return this->cols;
+  }
+  // TODO(P0): Add implementation
+  T GetElem(int i, int j) override { return this->linear[i * this->cols+j]; }
+  // TODO(P0): Add implementation
+  void SetElem(int i, int j, T val) override {
+    // data_[i][j] = val;
+    this->linear[i*this->cols+j] = val;
+  }
+  // TODO(P0): Add implementation
+  void MatImport(T *arr) override {
+    for (int i=0; i < (this->rows) * (this->cols); i++) {
+      this->linear[i] = arr[i];
     }
   }
 
   // TODO(P0): Add implementation
   ~RowMatrix() override {
-    delete[] data_;
-    delete[] this->linear;
+    delete [] data_;
   };
 
  private:
@@ -152,11 +158,11 @@ class RowMatrixOperations {
                                                     std::unique_ptr<RowMatrix<T>> matB,
                                                     std::unique_ptr<RowMatrix<T>> matC) {
     // TODO(P0): Add code
-    std::unique_ptr<RowMatrix<T>> resultMul = MultiplyMatrices(matA, matB);
+    std::unique_ptr<RowMatrix<T>> resultMul = std::move(MultiplyMatrices(std::move(matA), std::move(matB)));
     if (resultMul == std::unique_ptr<RowMatrix<T>>(nullptr)) {
       return resultMul;
     }
-    std::unique_ptr<RowMatrix<T>> resultAdd = AddMatrices(resultMul, matC);
+    std::unique_ptr<RowMatrix<T>> resultAdd = std::move(AddMatrices(std::move(resultMul), std::move(matC)));
     return resultAdd;
   }
 };
