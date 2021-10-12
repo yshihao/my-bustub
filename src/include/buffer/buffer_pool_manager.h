@@ -111,7 +111,7 @@ class BufferPoolManager {
     }
   }
   /**
-   * 
+   *
    * find the qualified page
    * @param frame_id id of replaced page
    * @return false if not find replaced page,true otherwise

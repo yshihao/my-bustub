@@ -42,7 +42,7 @@ bool BufferPoolManager::find_replace(frame_id_t *frame_id) {
   if (replacer_->Victim(frame_id)) {
     Page *replace_page = &pages_[*frame_id];
     if (replace_page->IsDirty()) {
-      disk_manager_->WritePage(replace_page->GetPageId(),replace_page->GetData());
+      disk_manager_->WritePage(replace_page->GetPageId(), replace_page->GetData());
     }
     replace_page->pin_count_ = 0;
     replace_page->is_dirty_ = false;
@@ -102,18 +102,18 @@ bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
   frame_id_t frame_id = page_table_[page_id];
   if (pages_[frame_id].GetPinCount() <= 0) {
     latch_.unlock();
-     return false;
+    return false;
   }
   if (!pages_[frame_id].IsDirty()) {
     pages_[frame_id].is_dirty_ = is_dirty;
   }
-  pages_[frame_id].pin_count_ = pages_[frame_id].pin_count_-1;
+  pages_[frame_id].pin_count_ = pages_[frame_id].pin_count_ - 1;
   if (pages_[frame_id].pin_count_ == 0) {
     replacer_->Unpin(frame_id);
   }
   latch_.unlock();
   return true;
-  }
+}
 
 bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
   // Make sure you call DiskManager::WritePage!
@@ -134,15 +134,17 @@ bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
 Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
   // 0.   Make sure you call DiskManager::AllocatePage!
   // 1.   If all the pages in the buffer pool are pinned, return nullptr.
-  latch_.lock(); 
+  latch_.lock();
   page_id_t disk_page_id = disk_manager_->AllocatePage();
   size_t i;
   for (i = 0; i < pool_size_; i++) {
-    if (pages_[i].GetPinCount() <= 0) { break;}
+    if (pages_[i].GetPinCount() <= 0) {
+      break;
+    }
   }
-  if (i >= pool_size_) { 
+  if (i >= pool_size_) {
     latch_.unlock();
-    return nullptr; 
+    return nullptr;
   }
   // 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.
   frame_id_t frame_ids;
@@ -182,7 +184,7 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
   if (page_table_.find(page_id) == page_table_.end()) {
     latch_.unlock();
     return true;
-  } 
+  }
   frame_id = page_table_[page_id];
   if (pages_[frame_id].GetPinCount() > 0) {
     latch_.unlock();
@@ -205,7 +207,7 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
 
 void BufferPoolManager::FlushAllPagesImpl() {
   // You can do it!
-  for (auto & p : page_table_) {
+  for (auto &p : page_table_) {
     page_id_t page_id = p.first;
     FlushPageImpl(page_id);
   }

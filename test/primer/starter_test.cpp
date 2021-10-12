@@ -4,9 +4,9 @@
 //
 // starter_test.cpp
 //
-// Identification: test/include/starter_test.cpp
+// Identification: test/primer/starter_test.cpp
 //
-// Copyright (c) 2015-2020, Carnegie Mellon University Database Group
+// Copyright (c) 2015-2019, Carnegie Mellon University Database Group
 //
 //===----------------------------------------------------------------------===//
 
@@ -42,8 +42,7 @@ TEST(StarterTest, AddMatricesTest) {
   }
 
   int arr3[9] = {3, 1, 3, 9, 8, 6, 0, 8, -1};
-  std::unique_ptr<RowMatrix<int>> sum_ptr =
-      RowMatrixOperations<int>::AddMatrices(std::move(mat1_ptr), std::move(mat2_ptr));
+  std::unique_ptr<RowMatrix<int>> sum_ptr = RowMatrixOperations<int>::AddMatrices(move(mat1_ptr), move(mat2_ptr));
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       EXPECT_EQ(arr3[i * 3 + j], sum_ptr->GetElem(i, j));
@@ -73,10 +72,44 @@ TEST(StarterTest, MultiplyMatricesTest) {
 
   int arr3[4] = {0, 14, -6, 32};
   std::unique_ptr<RowMatrix<int>> product_ptr =
-      RowMatrixOperations<int>::MultiplyMatrices(std::move(mat1_ptr), std::move(mat2_ptr));
+      RowMatrixOperations<int>::MultiplyMatrices(move(mat1_ptr), move(mat2_ptr));
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 2; j++) {
       EXPECT_EQ(arr3[i * 2 + j], product_ptr->GetElem(i, j));
+    }
+  }
+}
+
+TEST(StarterTest, GEMMTest) {
+  // Multiply
+  int arr1[6] = {1, 2, 3, 4, 5, 6};
+  std::unique_ptr<RowMatrix<int>> mat1_ptr{new RowMatrix<int>(2, 3)};
+  mat1_ptr->MatImport(&arr1[0]);
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 3; j++) {
+      EXPECT_EQ(arr1[i * 3 + j], mat1_ptr->GetElem(i, j));
+    }
+  }
+
+  int arr2[6] = {-2, 1, -2, 2, 2, 3};
+  std::unique_ptr<RowMatrix<int>> mat2_ptr{new RowMatrix<int>(3, 2)};
+  mat2_ptr->MatImport(&arr2[0]);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 2; j++) {
+      EXPECT_EQ(arr2[i * 2 + j], mat2_ptr->GetElem(i, j));
+    }
+  }
+
+  int arr3[4] = {2, -12, 8, -30};
+  std::unique_ptr<RowMatrix<int>> mat3_ptr{new RowMatrix<int>(2, 2)};
+  mat3_ptr->MatImport(&arr3[0]);
+
+  int arr4[4] = {2, 2, 2, 2};
+  std::unique_ptr<RowMatrix<int>> linear_ptr =
+      RowMatrixOperations<int>::GemmMatrices(move(mat1_ptr), move(mat2_ptr), move(mat3_ptr));
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 2; j++) {
+      EXPECT_EQ(arr4[i * 2 + j], linear_ptr->GetElem(i, j));
     }
   }
 }
