@@ -11,8 +11,10 @@
 #pragma once
 
 #include <queue>
+#include <utility>
 
 #include "storage/page/b_plus_tree_page.h"
+#include "storage/page/page.h"
 
 namespace bustub {
 

@@ -59,7 +59,8 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
     replacer_->Pin(frame_id);
     disk_manager_->ReadPage(page_id, pages->GetData());
     return pages;
-  } else if (replacer_->Victim(&frame_id)) {
+  }
+  if (replacer_->Victim(&frame_id)) {
     replacer_->Pin(frame_id);
     Page *pages = &pages_[frame_id];
     if (pages->is_dirty_) {
@@ -132,7 +133,8 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
     page_table_[page_ids] = frame_id;
     *page_id = page_ids;
     return pages;
-  } else if (replacer_->Victim(&frame_id)) {
+  }
+  if (replacer_->Victim(&frame_id)) {
     replacer_->Pin(frame_id);
     Page *pages = &pages_[frame_id];
     if (pages->is_dirty_) {

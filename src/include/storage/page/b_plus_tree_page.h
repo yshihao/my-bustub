@@ -12,8 +12,10 @@
 
 #include <cassert>
 #include <climits>
+#include <cmath>
 #include <cstdlib>
 #include <string>
+#include <utility>
 
 #include "buffer/buffer_pool_manager.h"
 #include "storage/index/generic_key.h"

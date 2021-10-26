@@ -12,6 +12,7 @@
 
 #include <queue>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "concurrency/transaction.h"
@@ -39,6 +40,7 @@ class BPlusTree {
   using LeafPage = BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>;
 
  public:
+  // forbid implicit transformation
   explicit BPlusTree(std::string name, BufferPoolManager *buffer_pool_manager, const KeyComparator &comparator,
                      int leaf_max_size = LEAF_PAGE_SIZE, int internal_max_size = INTERNAL_PAGE_SIZE);
 
