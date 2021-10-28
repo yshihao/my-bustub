@@ -61,7 +61,7 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetKeyAt(int index, const KeyType &key) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 int B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueIndex(const ValueType &value) const {
-  // 从0开始
+  // value 值是没有排序的
   for (int i = 0; i < this->GetSize(); i++) {
     MappingType item = array[i];
     if (item.second == value) {
@@ -93,21 +93,23 @@ ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const {
  */
 INDEX_TEMPLATE_ARGUMENTS
 ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyComparator &comparator) const {
-  ValueType ans = -1;
-  int tmp_size = GetSize();
-  if (tmp_size <= 1) {
-    return ans;
-  }
-  for (int i = 1; i < tmp_size; i++) {
-    if (comparator(array[i].first, key) > 0) {
-      ans = array[i - 1].second;
-      break;
-    }
-    if (i == tmp_size - 1) {
-      ans = array[i].second;  // 没找到就是最大的
+  int index = -1;
+  int l = 1;
+  int r = GetSize() - 1;
+  // 最后l == r 一定是小于等于key的最大index或是大于key的最小index
+  while (l < r) {
+    int mid = (l + r) / 2;
+    if (comparator(array[mid].first, key) > 0) {
+      r = mid - 1;
+    } else {
+      l = mid + 1;
     }
   }
-  return ans;
+  index = l;
+  if (comparator(array[index].first, key) > 0) {
+    index--;
+  }
+  return array[index].second;
 }
 
 /*****************************************************************************

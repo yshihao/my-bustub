@@ -40,9 +40,9 @@ class BPlusTree {
   using LeafPage = BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>;
 
  public:
-  // forbid implicit transformation
+  // forbid implicit transformation  leaf_max_size 可以不用为1
   explicit BPlusTree(std::string name, BufferPoolManager *buffer_pool_manager, const KeyComparator &comparator,
-                     int leaf_max_size = LEAF_PAGE_SIZE, int internal_max_size = INTERNAL_PAGE_SIZE);
+                     int leaf_max_size = LEAF_PAGE_SIZE, int internal_max_size = INTERNAL_PAGE_SIZE - 1);
 
   // Returns true if this B+ tree has no keys and values.
   bool IsEmpty() const;

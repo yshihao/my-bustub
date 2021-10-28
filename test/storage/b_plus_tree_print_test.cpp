@@ -42,7 +42,7 @@ std::string usageMessage() {
 }
 
 // Remove 'DISABLED_' when you are ready
-TEST(BptTreeTest,UnitTest) {
+TEST(BptTreeTest, DISABLED_UnitTest) {
   int64_t key = 0;
   GenericKey<8> index_key;
   RID rid;
@@ -147,38 +147,38 @@ TEST(BPlusTreeTests, SplitTest) {
   auto header_page = bpm->NewPage(&page_id);
   (void)header_page;
 
-  std::vector<int64_t> keys = {1, 2, 3, 4};
+  std::vector<int64_t> keys = {1, 2, 3, 4, 5};
   for (auto key : keys) {
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
     tree.Insert(index_key, rid, transaction);
   }
-   tree.Print(bpm);
-  // insert into repetitive key, all failed
-  // for (auto key : keys) {
-  //   int64_t value = key & 0xFFFFFFFF;
-  //   rid.Set(static_cast<int32_t>(key >> 32), value);
-  //   index_key.SetFromInteger(key);
-  //   EXPECT_EQ(false, tree.Insert(index_key, rid, transaction));
-  // }
-  // index_key.SetFromInteger(1);
-  // auto leaf_node =
-  //     reinterpret_cast<BPlusTreeLeafPage<GenericKey<8>, RID, GenericComparator<8>> *>(tree.FindLeafPage(index_key));
-  // ASSERT_NE(nullptr, leaf_node);
-  // // LOG_INFO(" leaf node size %d\n", leaf_node->GetSize());
   // tree.Print(bpm);
-  // EXPECT_EQ(1, leaf_node->GetSize());
-  // EXPECT_EQ(2, leaf_node->GetMaxSize());
+  // insert into repetitive key, all failed
+  for (auto key : keys) {
+    int64_t value = key & 0xFFFFFFFF;
+    rid.Set(static_cast<int32_t>(key >> 32), value);
+    index_key.SetFromInteger(key);
+    EXPECT_EQ(false, tree.Insert(index_key, rid, transaction));
+  }
+  index_key.SetFromInteger(1);
+  auto leaf_node =
+      reinterpret_cast<BPlusTreeLeafPage<GenericKey<8>, RID, GenericComparator<8>> *>(tree.FindLeafPage(index_key));
+  ASSERT_NE(nullptr, leaf_node);
+  // LOG_INFO(" leaf node size %d\n", leaf_node->GetSize());
+  // tree.Print(bpm);
+  EXPECT_EQ(1, leaf_node->GetSize());
+  EXPECT_EQ(2, leaf_node->GetMaxSize());
 
-  // // Check the next 4 pages
-  // for (int i = 0; i < 4; i++) {
-  //   EXPECT_NE(INVALID_PAGE_ID, leaf_node->GetNextPageId());
-  //   leaf_node = reinterpret_cast<BPlusTreeLeafPage<GenericKey<8>, RID, GenericComparator<8>> *>(
-  //       bpm->FetchPage(leaf_node->GetNextPageId()));
-  // }
+  // Check the next 4 pages
+  for (int i = 0; i < 4; i++) {
+    EXPECT_NE(INVALID_PAGE_ID, leaf_node->GetNextPageId());
+    leaf_node = reinterpret_cast<BPlusTreeLeafPage<GenericKey<8>, RID, GenericComparator<8>> *>(
+        bpm->FetchPage(leaf_node->GetNextPageId()));
+  }
 
-  // EXPECT_EQ(INVALID_PAGE_ID, leaf_node->GetNextPageId());
+  EXPECT_EQ(INVALID_PAGE_ID, leaf_node->GetNextPageId());
 
   bpm->UnpinPage(HEADER_PAGE_ID, true);
   delete transaction;
@@ -195,7 +195,7 @@ TEST(BPlusTreeTests, SplitTest) {
  * increasing order. Check whether the key-value pair is valid
  * using GetValue
  */
-TEST(BPlusTreeTests, DISABLED_InsertTest1) {
+TEST(BPlusTreeTests, InsertTest1) {
   // create KeyComparator and index schema
   Schema *key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema);
@@ -248,7 +248,7 @@ TEST(BPlusTreeTests, DISABLED_InsertTest1) {
  * a reversed order. Check whether the key-value pair is valid
  * using GetValue
  */
-TEST(BPlusTreeTests, DISABLED_InsertTest2) {
+TEST(BPlusTreeTests, InsertTest2) {
   // create KeyComparator and index schema
   Schema *key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema);
@@ -301,7 +301,7 @@ TEST(BPlusTreeTests, DISABLED_InsertTest2) {
  * a random order. Check whether the key-value pair is valid
  * using GetValue
  */
-TEST(BPlusTreeTests, DISABLED_ScaleTest) {
+TEST(BPlusTreeTests, ScaleTest) {
   // create KeyComparator and index schema
   Schema *key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema);
@@ -328,13 +328,17 @@ TEST(BPlusTreeTests, DISABLED_ScaleTest) {
   // randomized the insertion order
   auto rng = std::default_random_engine{};
   std::shuffle(keys.begin(), keys.end(), rng);
+  int count = 0;
   for (auto key : keys) {
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
+    count++;
+    // LOG_INFO("what happended!!! %d\n",count);
     tree.Insert(index_key, rid, transaction);
   }
-  tree.Print(bpm);
+  // LOG_INFO("what happended!!!");
+  //  tree.Print(bpm);
   std::vector<RID> rids;
   for (auto key : keys) {
     rids.clear();

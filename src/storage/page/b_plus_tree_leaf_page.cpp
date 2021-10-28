@@ -49,15 +49,28 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::SetNextPageId(page_id_t next_page_id) { next_pa
 /**
  * Helper method to find the first index i so that array[i].first >= key
  * NOTE: This method is only used when generating index iterator
+ * 返回值 是大于等于key的最小index 或是maxsindex+1
  */
 INDEX_TEMPLATE_ARGUMENTS
 int B_PLUS_TREE_LEAF_PAGE_TYPE::KeyIndex(const KeyType &key, const KeyComparator &comparator) const {
+  if (GetSize() == 0) {
+    return 0;
+  }
   int index = -1;
-  for (int i = 0; i < GetSize(); i++) {
-    if (comparator(array[i].first, key) >= 0) {
-      index = i;
-      break;
+  int l = 0;
+  int r = GetSize() - 1;
+  // 最后l == r 一定是小于key的最大值或是大于等于key的最小值
+  while (l < r) {
+    int mid = (l + r) / 2;
+    if (comparator(array[mid].first, key) >= 0) {
+      r = mid - 1;
+    } else {
+      l = mid + 1;
     }
+  }
+  index = l;
+  if (comparator(array[index].first, key) < 0) {
+    index++;
   }
   return index;
 }
@@ -95,17 +108,8 @@ const MappingType &B_PLUS_TREE_LEAF_PAGE_TYPE::GetItem(int index) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 int B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator) {
-  int index = 0;
   int size = GetSize();
-  for (int i = 0; i < size; i++) {
-    if (comparator(array[i].first, key) > 0) {
-      index = i;
-      break;
-    }
-    if (i == size - 1) {
-      index = size;
-    }
-  }
+  int index = KeyIndex(key, comparator);
   for (int i = size - 1; i >= index; i--) {
     array[i + 1] = array[i];
   }
@@ -157,18 +161,11 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::CopyNFrom(MappingType *items, int size) {
  */
 INDEX_TEMPLATE_ARGUMENTS
 bool B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup(const KeyType &key, ValueType *value, const KeyComparator &comparator) const {
-  int index = -1;
-  int size = GetSize();
-  for (int i = 0; i < size; i++) {
-    if (comparator(array[i].first, key) == 0) {
-      index = i;
-      break;
-    }
-    if (comparator(array[i].first, key) > 0) {
-      break;
-    }
+  int index = KeyIndex(key, comparator);
+  if (index == GetSize()) {
+    return false;
   }
-  if (index == -1) {
+  if (comparator(array[index].first, key) > 0) {
     return false;
   }
   *value = array[index].second;
@@ -186,18 +183,13 @@ bool B_PLUS_TREE_LEAF_PAGE_TYPE::Lookup(const KeyType &key, ValueType *value, co
  */
 INDEX_TEMPLATE_ARGUMENTS
 int B_PLUS_TREE_LEAF_PAGE_TYPE::RemoveAndDeleteRecord(const KeyType &key, const KeyComparator &comparator) {
-  int index = -1;
+
   int size = GetSize();
-  for (int i = 0; i < size; i++) {
-    if (comparator(array[i].first, key) == 0) {
-      index = i;
-      break;
-    }
-    if (comparator(array[i].first, key) > 0) {
-      break;
-    }
+  int index = KeyIndex(key, comparator);
+  if (index > GetSize()) {
+    return GetSize();
   }
-  if (index == -1) {
+  if (comparator(array[index].first, key) > 0) {
     return GetSize();
   }
   for (int i = index; i < size; i++) {
