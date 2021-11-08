@@ -128,7 +128,7 @@ TEST(BptTreeTest, DISABLED_UnitTest) {
  * Then check whether the keys are distributed in separate
  * leaf nodes
  */
-TEST(BPlusTreeTests, SplitTest) {
+TEST(BPlusTreeTests, DISABLED_SplitTest) {
   // create KeyComparator and index schema
   Schema *key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema);
@@ -195,7 +195,7 @@ TEST(BPlusTreeTests, SplitTest) {
  * increasing order. Check whether the key-value pair is valid
  * using GetValue
  */
-TEST(BPlusTreeTests, InsertTest1) {
+TEST(BPlusTreeTests, DISABLED_InsertTest1) {
   // create KeyComparator and index schema
   Schema *key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema);

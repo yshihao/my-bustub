@@ -51,8 +51,9 @@ KeyType B_PLUS_TREE_INTERNAL_PAGE_TYPE::KeyAt(int index) const {
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetKeyAt(int index, const KeyType &key) {
   assert(index >= 0 && index < this->GetMaxSize());
-  MappingType p = array[index];
-  p.first = key;
+  // 一定要注意 修改要是引用
+  array[index].first = key;
+  // p.first = key;
 }
 
 /*
@@ -224,7 +225,19 @@ ValueType B_PLUS_TREE_INTERNAL_PAGE_TYPE::RemoveAndReturnOnlyChild() {
  */
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveAllTo(BPlusTreeInternalPage *recipient, const KeyType &middle_key,
-                                               BufferPoolManager *buffer_pool_manager) {}
+                                               BufferPoolManager *buffer_pool_manager) {
+  // 用于合并  右边->左边
+  int size = GetSize();
+  for (int i = 0; i < size; i++) {
+    if (i == 0) {
+      MappingType tmp = std::make_pair(middle_key, ValueAt(0));
+      recipient->CopyLastFrom(tmp, buffer_pool_manager);
+    } else {
+      recipient->CopyLastFrom(array[i], buffer_pool_manager);
+    }
+  }
+  SetSize(0);
+}
 
 /*****************************************************************************
  * REDISTRIBUTE
@@ -240,7 +253,8 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveAllTo(BPlusTreeInternalPage *recipient,
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveFirstToEndOf(BPlusTreeInternalPage *recipient, const KeyType &middle_key,
                                                       BufferPoolManager *buffer_pool_manager) {
-  MappingType tmp = array[0];
+  // 右边移到左边
+  MappingType tmp = std::make_pair(middle_key, ValueAt(0));
   Remove(0);
   recipient->CopyLastFrom(tmp, buffer_pool_manager);
 }
@@ -270,8 +284,10 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::CopyLastFrom(const MappingType &pair, Buffe
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveLastToFrontOf(BPlusTreeInternalPage *recipient, const KeyType &middle_key,
                                                        BufferPoolManager *buffer_pool_manager) {
-  MappingType tmp = array[GetSize() - 1];
+  MappingType lastP = array[GetSize() - 1];
   Remove(GetSize() - 1);
+  recipient->SetKeyAt(0, middle_key);
+  MappingType tmp = std::make_pair(middle_key, lastP.second);
   recipient->CopyFirstFrom(tmp, buffer_pool_manager);
 }
 
@@ -294,6 +310,7 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::CopyFirstFrom(const MappingType &pair, Buff
 }
 
 // valuetype for internalNode should be page id_t
+// 显式实例化
 template class BPlusTreeInternalPage<GenericKey<4>, page_id_t, GenericComparator<4>>;
 template class BPlusTreeInternalPage<GenericKey<8>, page_id_t, GenericComparator<8>>;
 template class BPlusTreeInternalPage<GenericKey<16>, page_id_t, GenericComparator<16>>;
