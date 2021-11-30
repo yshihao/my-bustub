@@ -24,7 +24,7 @@ namespace bustub {
 Tuple::Tuple(std::vector<Value> values, const Schema *schema) : allocated_(true) {
   assert(values.size() == schema->GetColumnCount());
 
-  // 1. Calculate the size of the tuple.
+  // 1. Calculate the size of the tuple. 这个是定长的Column
   uint32_t tuple_size = schema->GetLength();
   for (auto &i : schema->GetUnlinedColumns()) {
     tuple_size += (values[i].GetLength() + sizeof(uint32_t));
@@ -32,6 +32,7 @@ Tuple::Tuple(std::vector<Value> values, const Schema *schema) : allocated_(true)
 
   // 2. Allocate memory.
   size_ = tuple_size;
+  //分配内存
   data_ = new char[size_];
   std::memset(data_, 0, size_);
 
@@ -41,11 +42,13 @@ Tuple::Tuple(std::vector<Value> values, const Schema *schema) : allocated_(true)
 
   for (uint32_t i = 0; i < column_count; i++) {
     const auto &col = schema->GetColumn(i);
+    // 返回的是Column，有offset
     if (!col.IsInlined()) {
       // Serialize relative offset, where the actual varchar data is stored.
       *reinterpret_cast<uint32_t *>(data_ + col.GetOffset()) = offset;
       // Serialize varchar value, in place (size+data).
       values[i].SerializeTo(data_ + offset);
+      // 为什么要 + sizeof(uint32_t) ？  变长数据字节数+变长数据
       offset += (values[i].GetLength() + sizeof(uint32_t));
     } else {
       values[i].SerializeTo(data_ + col.GetOffset());
@@ -91,6 +94,7 @@ Value Tuple::GetValue(const Schema *schema, const uint32_t column_idx) const {
   assert(schema);
   assert(data_);
   const TypeId column_type = schema->GetColumn(column_idx).GetType();
+  // 拿到数据存储的地址
   const char *data_ptr = GetDataPtr(schema, column_idx);
   // the third parameter "is_inlined" is unused
   return Value::DeserializeFrom(data_ptr, column_type);

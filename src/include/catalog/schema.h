@@ -31,6 +31,7 @@ class Schema {
 
   static Schema *CopySchema(const Schema *from, const std::vector<uint32_t> &attrs) {
     std::vector<Column> cols;
+    // 分配空间
     cols.reserve(attrs.size());
     for (const auto i : attrs) {
       cols.emplace_back(from->columns_[i]);
@@ -97,6 +98,7 @@ class Schema {
   bool tuple_is_inlined_;
 
   /** Indices of all uninlined columns. */
+  // uninlined_columns 的下标
   std::vector<uint32_t> uninlined_columns_;
 };
 

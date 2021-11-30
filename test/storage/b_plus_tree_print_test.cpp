@@ -326,6 +326,7 @@ TEST(BPlusTreeTests, ScaleTest) {
   }
 
   // randomized the insertion order
+  // RID用在叶子结点中，存在哪一页 哪个位置
   auto rng = std::default_random_engine{};
   std::shuffle(keys.begin(), keys.end(), rng);
   int count = 0;

@@ -18,6 +18,8 @@
 
 #include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
+#include "execution/executors/index_scan_executor.h"
+#include "execution/executors/seq_scan_executor.h"
 #include "execution/plans/update_plan.h"
 #include "storage/table/tuple.h"
 #include "type/value_factory.h"
@@ -46,6 +48,8 @@ class UpdateExecutor : public AbstractExecutor {
 
   bool Next([[maybe_unused]] Tuple *tuple, RID *rid) override;
 
+  // update plan是否会影响到某个索引，影响到则需要对索引 删除old数据再重建
+  bool indexNeedUpdate(const IndexInfo *indexInfo);
   /*
    * Given an old tuple, creates a new updated tuple based on the updateinfo given in the plan
    * @param old_tup the tuple to be updated
@@ -82,5 +86,6 @@ class UpdateExecutor : public AbstractExecutor {
   const TableMetadata *table_info_;
   /** The child executor to obtain value from. */
   std::unique_ptr<AbstractExecutor> child_executor_;
+  std::vector<IndexInfo *> indexVector;
 };
 }  // namespace bustub

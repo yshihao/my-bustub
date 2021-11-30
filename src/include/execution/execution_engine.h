@@ -42,12 +42,17 @@ class ExecutionEngine {
       Tuple tuple;
       RID rid;
       while (executor->Next(&tuple, &rid)) {
+        if (plan->GetType() == PlanType::Delete || plan->GetType() == PlanType::Update ||
+            plan->GetType() == PlanType::Insert) {
+          continue;
+        }
         if (result_set != nullptr) {
           result_set->push_back(tuple);
         }
       }
     } catch (Exception &e) {
       // TODO(student): handle exceptions
+      std::cout << e.what() << std::endl;
     }
 
     return true;

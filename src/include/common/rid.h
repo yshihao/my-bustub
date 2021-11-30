@@ -19,7 +19,7 @@
 #include "common/config.h"
 
 namespace bustub {
-
+// 表示的是每个页面里的每个记条记录的标识 有页号和slot num
 class RID {
  public:
   /** The default constructor creates an invalid RID! */

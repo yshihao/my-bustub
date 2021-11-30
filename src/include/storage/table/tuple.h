@@ -93,8 +93,9 @@ class Tuple {
   const char *GetDataPtr(const Schema *schema, uint32_t column_idx) const;
 
   bool allocated_{false};  // is allocated?
-  RID rid_{};              // if pointing to the table heap, the rid is valid
+  RID rid_{};              // if pointing to the table heap, the rid is valid。 会有临时构建的情况
   uint32_t size_{0};
+  // 临时保存tuple的存储区
   char *data_{nullptr};
 };
 

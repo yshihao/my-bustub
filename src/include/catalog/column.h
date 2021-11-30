@@ -116,7 +116,7 @@ class Column {
 
   /** Column value's type. */
   TypeId column_type_;
-
+  // inlined 应该表示就是存在列里的 没有指针引出去
   /** For a non-inlined column, this is the size of a pointer. Otherwise, the size of the fixed length column. */
   uint32_t fixed_length_;
 

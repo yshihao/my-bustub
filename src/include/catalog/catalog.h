@@ -68,23 +68,44 @@ class Catalog {
   Catalog(BufferPoolManager *bpm, LockManager *lock_manager, LogManager *log_manager)
       : bpm_{bpm}, lock_manager_{lock_manager}, log_manager_{log_manager} {}
 
-  /**
-   * Create a new table and return its metadata.
+  /**return its metad
+   * Create a new table and ata.
    * @param txn the transaction in which the table is being created
    * @param table_name the name of the new table
    * @param schema the schema of the new table
    * @return a pointer to the metadata of the new table
    */
   TableMetadata *CreateTable(Transaction *txn, const std::string &table_name, const Schema &schema) {
+    // TableMetadata tableMetadata
     BUSTUB_ASSERT(names_.count(table_name) == 0, "Table names should be unique!");
-    return nullptr;
+    table_oid_t table_oid = next_table_oid_++;
+    names_.insert({table_name, table_oid});
+    // 创建一张实体表
+    std::unique_ptr<TableHeap> tableHeap(new TableHeap(bpm_, lock_manager_, log_manager_, txn));
+    std::unique_ptr<TableMetadata> p(new TableMetadata(schema, table_name, std::move(tableHeap), table_oid));
+    tables_.insert({table_oid, std::move(p)});
+    return &(*tables_[table_oid]);
   }
 
   /** @return table metadata by name */
-  TableMetadata *GetTable(const std::string &table_name) { return nullptr; }
+  TableMetadata *GetTable(const std::string &table_name) {
+    if (names_.find(table_name) == names_.end()) {
+      throw std::out_of_range("out of range");
+    }
+    table_oid_t table_identifier = names_[table_name];
+    return GetTable(table_identifier);
+  }
 
   /** @return table metadata by oid */
-  TableMetadata *GetTable(table_oid_t table_oid) { return nullptr; }
+  TableMetadata *GetTable(table_oid_t table_oid) {
+    auto p = tables_.find(table_oid);
+    if (p == tables_.end()) {
+      throw std::out_of_range("out of range");
+    }
+    // 只能有一个指针 指向他
+    return &(*(p->second));
+    // return nullptr;
+  }
 
   /**
    * Create a new index, populate existing data of the table and return its metadata.
@@ -101,14 +122,64 @@ class Catalog {
   IndexInfo *CreateIndex(Transaction *txn, const std::string &index_name, const std::string &table_name,
                          const Schema &schema, const Schema &key_schema, const std::vector<uint32_t> &key_attrs,
                          size_t keysize) {
-    return nullptr;
+    if (names_.find(table_name) == names_.end()) {
+      throw std::out_of_range("out of range");
+    }
+    auto indexToId = index_names_.find(table_name);
+    index_oid_t index_id = next_index_oid_++;
+    if (indexToId == index_names_.end()) {
+      std::unordered_map<std::string, index_oid_t> tmp({{index_name, index_id}});
+      index_names_.insert({table_name, tmp});
+    } else {
+      std::unordered_map<std::string, index_oid_t> nameToId = indexToId->second;
+      nameToId.insert({index_name, index_id});
+    }
+    // 为何传的是schema
+    // std::shared_ptr<IndexMetadata> indexMeta(new IndexMetadata(index_name, table_name, &schema, key_attrs));
+    auto indexMeta = new IndexMetadata(index_name, table_name, &schema, key_attrs);
+    // 基类 指向子类 利用了多态性质
+    std::unique_ptr<Index> bplusTreeIndex(new BPlusTreeIndex<KeyType, ValueType, KeyComparator>(indexMeta, bpm_));
+    // auto tableMetaP = tables_[names_[table_name]];
+    auto tableMetaP = GetTable(table_name);
+    for (auto tableIderator = tableMetaP->table_->Begin(txn); tableIderator != tableMetaP->table_->End();
+         tableIderator++) {
+      Tuple tuple_ = *tableIderator;
+      Tuple result = tuple_.KeyFromTuple(schema, key_schema, key_attrs);
+      bplusTreeIndex->InsertEntry(result, tuple_.GetRid(), txn);
+    }
+
+    std::unique_ptr<IndexInfo> p(
+        new IndexInfo(key_schema, index_name, std::move(bplusTreeIndex), index_id, table_name, keysize));
+    indexes_.insert({index_id, std::move(p)});
+    return &(*indexes_[index_id]);
   }
 
-  IndexInfo *GetIndex(const std::string &index_name, const std::string &table_name) { return nullptr; }
+  IndexInfo *GetIndex(const std::string &index_name, const std::string &table_name) {
+    auto tableNameToId = index_names_.find(table_name);
+    if (tableNameToId == index_names_.end()) {
+      throw std::out_of_range("out of range");
+    }
+    auto indexNameToId = tableNameToId->second;
+    if (indexNameToId.find(index_name) == indexNameToId.end()) {
+      throw std::out_of_range("out of range");
+    }
+    return GetIndex(indexNameToId[index_name]);
+  }
 
-  IndexInfo *GetIndex(index_oid_t index_oid) { return nullptr; }
+  IndexInfo *GetIndex(index_oid_t index_oid) {
+    if (indexes_.find(index_oid) == indexes_.end()) {
+      throw std::out_of_range("out of range");
+    }
+    return &(*indexes_[index_oid]);
+  }
 
-  std::vector<IndexInfo *> GetTableIndexes(const std::string &table_name) { return std::vector<IndexInfo *>(); }
+  std::vector<IndexInfo *> GetTableIndexes(const std::string &table_name) {
+    std::vector<IndexInfo *> result;
+    for (auto &nameToId : index_names_[table_name]) {
+      result.push_back(&(*indexes_[nameToId.second]));
+    }
+    return result;
+  }
 
  private:
   [[maybe_unused]] BufferPoolManager *bpm_;

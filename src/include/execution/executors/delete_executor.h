@@ -18,6 +18,8 @@
 
 #include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
+#include "execution/executors/index_scan_executor.h"
+#include "execution/executors/seq_scan_executor.h"
 #include "execution/plans/delete_plan.h"
 #include "storage/table/tuple.h"
 
@@ -51,5 +53,8 @@ class DeleteExecutor : public AbstractExecutor {
   const DeletePlanNode *plan_;
   /** The child executor to obtain rid from. */
   std::unique_ptr<AbstractExecutor> child_executor_;
+
+  const TableMetadata *table_info_;
+  std::vector<IndexInfo *> indexVector;
 };
 }  // namespace bustub

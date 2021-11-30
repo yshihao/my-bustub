@@ -2,9 +2,9 @@
 //
 //                         BusTub
 //
-// catalog_test.cpp
+// grading_catalog_test.cpp
 //
-// Identification: test/catalog/catalog_test.cpp
+// Identification: test/catalog/grading_catalog_test.cpp
 //
 // Copyright (c) 2015-2019, Carnegie Mellon University Database Group
 //
@@ -26,32 +26,6 @@
 namespace bustub {
 
 // NOLINTNEXTLINE
-TEST(CatalogTest, CreateTableTest) {
-  auto disk_manager = new DiskManager("catalog_test.db");
-  auto bpm = new BufferPoolManager(32, disk_manager);
-  auto catalog = new Catalog(bpm, nullptr, nullptr);
-  std::string table_name = "potato";
-
-  // The table shouldn't exist in the catalog yet.
-  EXPECT_THROW(catalog->GetTable(table_name), std::out_of_range);
-
-  // Put the table into the catalog.
-  std::vector<Column> columns;
-  columns.emplace_back("A", TypeId::INTEGER);
-  columns.emplace_back("B", TypeId::BOOLEAN);
-
-  Schema schema(columns);
-  auto *table_metadata = catalog->CreateTable(nullptr, table_name, schema);
-  (void)table_metadata;
-
-  // Notice that this test case doesn't check anything! :(
-  // It is up to you to extend it
-
-  delete catalog;
-  delete bpm;
-  delete disk_manager;
-}
-
 TEST(GradingCatalogTest, CreateTableTest) {
   auto disk_manager = new DiskManager("catalog_test.db");
   auto bpm = new BufferPoolManager(32, disk_manager);
@@ -112,11 +86,13 @@ TEST(GradingCatalogTest, CreateTableTest) {
 TEST(GradingCatalogTest, CreateIndexTest) {
   auto disk_manager = std::make_unique<DiskManager>("catalog_test.db");
   auto bpm = std::make_unique<BufferPoolManager>(32, disk_manager.get());
+  // LockManager *lock_manager_ = std::make_unique<LockManager>();
+  // TransactionManager *txn_mgr_ = std::make_unique<TransactionManager>(lock_manager_.get(), log_manager_.get())
   auto catalog = std::make_unique<Catalog>(bpm.get(), nullptr, nullptr);
 
   Transaction txn(0);
 
-  auto exec_ctx = std::make_unique<ExecutorContext>(&txn, catalog.get(), bpm.get(), nullptr, nullptr);
+  auto exec_ctx = std::make_unique<ExecutorContext>(&txn, catalog.get(), bpm.get());
 
   TableGenerator gen{exec_ctx.get()};
   gen.GenerateTestTables();

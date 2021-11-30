@@ -36,6 +36,9 @@ namespace bustub {
  *  ----------------------------------------------------------------------------
  *  | PageId (4)| LSN (4)| PrevPageId (4)| NextPageId (4)| FreeSpacePointer(4) |
  *  ----------------------------------------------------------------------------
+ * // offset 和size 是每个 tuple的头部数据  Tuple_size 用来表示有tuple 大小，0表示删除。 offset保存的是
+ * 这个tuple的指针位置
+ * // tuple的头部数据始终保存在一起
  *  ----------------------------------------------------------------
  *  | TupleCount (4) | Tuple_1 offset (4) | Tuple_1 size (4) | ... |
  *  ----------------------------------------------------------------
@@ -165,7 +168,7 @@ class TablePage : public Page {
 
   /** Set the number of tuples in this page. */
   void SetTupleCount(uint32_t tuple_count) { memcpy(GetData() + OFFSET_TUPLE_COUNT, &tuple_count, sizeof(uint32_t)); }
-
+  // ？
   uint32_t GetFreeSpaceRemaining() {
     return GetFreeSpacePointer() - SIZE_TABLE_PAGE_HEADER - SIZE_TUPLE * GetTupleCount();
   }

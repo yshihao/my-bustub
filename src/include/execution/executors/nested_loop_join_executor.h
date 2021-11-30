@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
@@ -41,6 +42,9 @@ class NestedLoopJoinExecutor : public AbstractExecutor {
 
   const Schema *GetOutputSchema() override { return plan_->OutputSchema(); };
 
+  // 拼凑 左tuple 和右tuple 得到和outputschema 相符合的tuple
+  std::vector<Value> GetResultTuple(const Tuple &leftTuple, const Tuple &rightTuple);
+
   void Init() override;
 
   bool Next(Tuple *tuple, RID *rid) override;
@@ -48,5 +52,11 @@ class NestedLoopJoinExecutor : public AbstractExecutor {
  private:
   /** The NestedLoop plan node to be executed. */
   const NestedLoopJoinPlanNode *plan_;
+  std::unique_ptr<AbstractExecutor> left_executor_;
+  std::unique_ptr<AbstractExecutor> right_executor_;
+  std::vector<Tuple> left_tuples;
+  std::vector<Tuple> right_tuples;
+  std::vector<Tuple>::iterator leftIterator;
+  std::vector<Tuple>::iterator rightIterator;
 };
 }  // namespace bustub

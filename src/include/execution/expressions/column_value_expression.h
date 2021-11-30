@@ -32,7 +32,7 @@ class ColumnValueExpression : public AbstractExpression {
    */
   ColumnValueExpression(uint32_t tuple_idx, uint32_t col_idx, TypeId ret_type)
       : AbstractExpression({}, ret_type), tuple_idx_{tuple_idx}, col_idx_{col_idx} {}
-
+  // 注意 schema 应该是表全部 根据value的 type 来获得对应的数据
   Value Evaluate(const Tuple *tuple, const Schema *schema) const override { return tuple->GetValue(schema, col_idx_); }
 
   Value EvaluateJoin(const Tuple *left_tuple, const Schema *left_schema, const Tuple *right_tuple,

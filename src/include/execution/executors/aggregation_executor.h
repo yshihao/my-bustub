@@ -30,6 +30,7 @@ namespace bustub {
 /**
  * A simplified hash table that has all the necessary functionality for aggregations.
  */
+// key应该是分组的字段 那value是什么？
 class SimpleAggregationHashTable {
  public:
   /**
@@ -97,6 +98,7 @@ class SimpleAggregationHashTable {
    * @param agg_val the value to be inserted
    */
   void InsertCombine(const AggregateKey &agg_key, const AggregateValue &agg_val) {
+    // 每一个分组 都要有一个结局
     if (ht.count(agg_key) == 0) {
       ht.insert({agg_key, GenerateInitialAggregateValue()});
     }
@@ -175,6 +177,7 @@ class AggregationExecutor : public AbstractExecutor {
   /** @return the tuple as an AggregateKey */
   AggregateKey MakeKey(const Tuple *tuple) {
     std::vector<Value> keys;
+    // 分组的key
     for (const auto &expr : plan_->GetGroupBys()) {
       keys.emplace_back(expr->Evaluate(tuple, child_->GetOutputSchema()));
     }
@@ -196,8 +199,10 @@ class AggregationExecutor : public AbstractExecutor {
   /** The child executor whose tuples we are aggregating. */
   std::unique_ptr<AbstractExecutor> child_;
   /** Simple aggregation hash table. */
-  // Uncomment me! SimpleAggregationHashTable aht_;
+  // Uncomment me!
+  SimpleAggregationHashTable aht_;
   /** Simple aggregation hash table iterator. */
-  // Uncomment me! SimpleAggregationHashTable::Iterator aht_iterator_;
+  // Uncomment me!
+  SimpleAggregationHashTable::Iterator aht_iterator_;
 };
 }  // namespace bustub

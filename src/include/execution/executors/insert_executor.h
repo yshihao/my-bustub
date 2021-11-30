@@ -14,9 +14,12 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
+#include "execution/executors/index_scan_executor.h"
+#include "execution/executors/seq_scan_executor.h"
 #include "execution/plans/insert_plan.h"
 #include "storage/table/tuple.h"
 
@@ -44,8 +47,18 @@ class InsertExecutor : public AbstractExecutor {
   // We return false if the insert failed for any reason, and return true if all inserts succeeded.
   bool Next([[maybe_unused]] Tuple *tuple, RID *rid) override;
 
+  // 插入表并更新索引
+  bool insertTable(Tuple *tuple, RID *rid, Transaction *transactioin);
+
  private:
   /** The insert plan node to be executed. */
   const InsertPlanNode *plan_;
+  const TableMetadata *tableMeta;
+  // 数据在plan内 已经插入的下标
+  int32_t valuePos;
+
+  //该表所有的索引
+  std::vector<IndexInfo *> indexVector;
+  std::unique_ptr<AbstractExecutor> child_executor_;
 };
 }  // namespace bustub

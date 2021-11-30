@@ -77,7 +77,9 @@ class AggregationPlanNode : public AbstractPlanNode {
 
  private:
   const AbstractExpression *having_;
+  // 就是对多个字段 进行group by 来得到分组
   std::vector<const AbstractExpression *> group_bys_;
+  // 每个分组都有对应的 不同聚合函数
   std::vector<const AbstractExpression *> aggregates_;
   std::vector<AggregationType> agg_types_;
 };

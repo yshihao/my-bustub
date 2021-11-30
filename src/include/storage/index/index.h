@@ -35,7 +35,7 @@ class Transaction;
 class IndexMetadata {
  public:
   IndexMetadata() = delete;
-
+  // 元组的结构
   IndexMetadata(std::string index_name, std::string table_name, const Schema *tuple_schema,
                 std::vector<uint32_t> key_attrs)
       : name_(std::move(index_name)), table_name_(std::move(table_name)), key_attrs_(std::move(key_attrs)) {
@@ -77,6 +77,7 @@ class IndexMetadata {
   std::string name_;
   std::string table_name_;
   // The mapping relation between key schema and tuple schema
+  // 实际上记录的是 哪些列被这个索引里包含 存的是下标
   const std::vector<uint32_t> key_attrs_;
   // schema of the indexed key
   Schema *key_schema_;

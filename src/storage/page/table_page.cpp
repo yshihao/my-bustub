@@ -39,6 +39,7 @@ bool TablePage::InsertTuple(const Tuple &tuple, RID *rid, Transaction *txn, Lock
                             LogManager *log_manager) {
   BUSTUB_ASSERT(tuple.size_ > 0, "Cannot have empty tuples.");
   // If there is not enough space, then return false.
+  // 每个tuple元数据 8byte
   if (GetFreeSpaceRemaining() < tuple.size_ + SIZE_TUPLE) {
     return false;
   }

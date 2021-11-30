@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "catalog/catalog.h"
+#include "execution/expressions/column_value_expression.h"
 #include "execution/plans/abstract_plan.h"
 #include "storage/table/tuple.h"
 
@@ -63,6 +64,7 @@ class NestedIndexJoinPlanNode : public AbstractPlanNode {
   /** The nested index join predicate. */
   const AbstractExpression *predicate_;
   table_oid_t inner_table_oid_;
+  // 对每一条外表的数据 都要通过索引找到对应的 内表
   const std::string index_name_;
   const Schema *outer_table_schema_;
   const Schema *inner_table_schema_;
