@@ -32,8 +32,15 @@ void InsertExecutor::Init() {
 bool InsertExecutor::insertTable(Tuple *tuple, RID *rid, Transaction *transactioin) {
   bool isSuccess = tableMeta->table_->InsertTuple(*tuple, rid, exec_ctx_->GetTransaction());
   valuePos++;
+  if (transactioin->GetState() == TransactionState::ABORTED && GetExecutorContext()->GetLockManager() != nullptr) {
+    TransactionManager *transactionManager = GetExecutorContext()->GetTransactionManager();
+    transactionManager->Abort(GetExecutorContext()->GetTransaction());
+    return false;
+  }
+  // TableWriteRecord tableWrite(*rid, WType::INSERT, *tuple, tableMeta->table_.get());
   if (isSuccess) {
     // 每次插入成功 都需要更新所有索引
+    // GetExecutorContext()->GetTransaction()->AppendTableWriteRecord(tableWrite);
     for (auto indexInfoP : indexVector) {
       Tuple keyTuple =
           tuple->KeyFromTuple(tableMeta->schema_, indexInfoP->key_schema_, indexInfoP->index_->GetKeyAttrs());

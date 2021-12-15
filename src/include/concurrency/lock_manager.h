@@ -15,8 +15,10 @@
 #include <algorithm>
 #include <condition_variable>  // NOLINT
 #include <list>
+#include <map>
 #include <memory>
 #include <mutex>  // NOLINT
+#include <stack>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -30,6 +32,7 @@ class TransactionManager;
 
 /**
  * LockManager handles transactions asking for locks on records.
+ * 确保 二阶段锁的性质
  */
 class LockManager {
   enum class LockMode { SHARED, EXCLUSIVE };
@@ -45,9 +48,14 @@ class LockManager {
 
   class LockRequestQueue {
    public:
+    // 哪些事务 在等待锁
     std::list<LockRequest> request_queue_;
     std::condition_variable cv_;  // for notifying blocked transactions on this rid
     bool upgrading_ = false;
+    // 共享锁的数量
+    int shared_count = 0;
+    // 有排它锁
+    bool has_exclusive = false;
   };
 
  public:
@@ -55,7 +63,7 @@ class LockManager {
    * Creates a new lock manager configured for the deadlock detection policy.
    */
   LockManager() {
-    enable_cycle_detection_ = true;
+    enable_cycle_detection_ = false;
     cycle_detection_thread_ = new std::thread(&LockManager::RunCycleDetection, this);
     LOG_INFO("Cycle detection thread launched");
   }
@@ -66,7 +74,14 @@ class LockManager {
     delete cycle_detection_thread_;
     LOG_INFO("Cycle detection thread stopped");
   }
+  /*
+   *  return true if find circle
+   */
+  bool DfsSearch(const txn_id_t &txn_id);
 
+  bool isAllSharedLock(const std::list<LockRequest> &lockList);
+
+  void breakCircle(const txn_id_t &txn_id);
   /*
    * [LOCK_NOTE]: For all locking functions, we:
    * 1. return false if the transaction is aborted; and
@@ -140,6 +155,15 @@ class LockManager {
   std::unordered_map<RID, LockRequestQueue> lock_table_;
   /** Waits-for graph representation. */
   std::unordered_map<txn_id_t, std::vector<txn_id_t>> waits_for_;
+
+  std::unordered_map<txn_id_t, bool> vis;
+  std::unordered_map<txn_id_t, bool> route;
+
+  std::unordered_map<txn_id_t, RID> txn_to_RID;
+  std::map<txn_id_t, int> mytransactions;
+
+  txn_id_t mytag = -1;
+  txn_id_t myanswer = -1;
 };
 
 }  // namespace bustub

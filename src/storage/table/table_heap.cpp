@@ -81,6 +81,23 @@ bool TableHeap::InsertTuple(const Tuple &tuple, RID *rid, Transaction *txn) {
       cur_page = new_page;
     }
   }
+  // if (lock_manager_ != nullptr) {
+  //   bool isLock = false;
+  //   if (txn->IsSharedLocked(*rid)) {
+  //     isLock = lock_manager_->LockUpgrade(txn, *rid);
+  //   } else {
+  //     isLock = lock_manager_->LockExclusive(txn, *rid);
+  //   }
+  //   if (!isLock) {
+  //     cur_page->WUnlatch();
+  //     buffer_pool_manager_->UnpinPage(cur_page->GetTablePageId(), true);
+  //     // Update the transaction's write set.
+  //     txn->GetWriteSet()->emplace_back(*rid, WType::INSERT, Tuple{}, this);
+  //     txn->SetState(TransactionState::ABORTED);
+  //     return false;
+  //   }
+  // }
+
   // This line has caused most of us to double-take and "whoa double unlatch".
   // We are not, in fact, double unlatching. See the invariant above.
   cur_page->WUnlatch();

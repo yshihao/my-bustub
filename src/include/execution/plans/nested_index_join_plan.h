@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "catalog/catalog.h"
-#include "execution/expressions/column_value_expression.h"
 #include "execution/plans/abstract_plan.h"
 #include "storage/table/tuple.h"
 

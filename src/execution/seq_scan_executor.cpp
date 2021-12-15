@@ -45,6 +45,23 @@ bool SeqScanExecutor::Next(Tuple *tuple, RID *rid) {
         }
         *tuple = Tuple(tmp, output_schema);
         *rid = RID(mytuple.GetRid().Get());
+        LockManager *lockManager = GetExecutorContext()->GetLockManager();
+        if (lockManager != nullptr) {
+          Transaction *transaction = GetExecutorContext()->GetTransaction();
+          if (transaction->GetIsolationLevel() == IsolationLevel::READ_COMMITTED ||
+              transaction->GetIsolationLevel() == IsolationLevel::REPEATABLE_READ) {
+            bool isLock = lockManager->LockShared(GetExecutorContext()->GetTransaction(), *rid);
+            TransactionManager *transactionManager = GetExecutorContext()->GetTransactionManager();
+            if (!isLock) {
+              transactionManager->Abort(GetExecutorContext()->GetTransaction());
+              return false;
+            }
+            if (transaction->GetIsolationLevel() == IsolationLevel::READ_COMMITTED) {
+              lockManager->Unlock(transaction, *rid);
+            }
+          }
+        }
+
         return true;
       }
       continue;
@@ -58,6 +75,27 @@ bool SeqScanExecutor::Next(Tuple *tuple, RID *rid) {
     }
     *tuple = Tuple(tmp, output_schema);
     *rid = RID(mytuple.GetRid().Get());
+    LockManager *lockManager = GetExecutorContext()->GetLockManager();
+    if (lockManager != nullptr) {
+      Transaction *transaction = GetExecutorContext()->GetTransaction();
+      if (transaction->GetIsolationLevel() == IsolationLevel::READ_COMMITTED ||
+          transaction->GetIsolationLevel() == IsolationLevel::REPEATABLE_READ) {
+        bool isLock = lockManager->LockShared(GetExecutorContext()->GetTransaction(), *rid);
+        if (!isLock) {
+          TransactionManager *transactionManager = GetExecutorContext()->GetTransactionManager();
+          transactionManager->Abort(GetExecutorContext()->GetTransaction());
+          return false;
+        }
+        if (transaction->GetIsolationLevel() == IsolationLevel::READ_COMMITTED) {
+          lockManager->Unlock(transaction, *rid);
+        }
+        // 锁管理器已经做了这部分工作
+        // else {
+        //   transaction->GetSharedLockSet()->insert(*rid);
+        // }
+      }
+    }
+
     tableBeginIderator++;
     return true;
   }

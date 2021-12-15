@@ -56,6 +56,7 @@ void TransactionManager::Commit(Transaction *txn) {
   global_txn_latch_.RUnlock();
 }
 
+// 事务管理器负责 对事务管理
 void TransactionManager::Abort(Transaction *txn) {
   txn->SetState(TransactionState::ABORTED);
   // Rollback before releasing the lock.
